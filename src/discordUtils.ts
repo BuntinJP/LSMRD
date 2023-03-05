@@ -24,16 +24,31 @@ class client {
         data: RESTPostAPIChannelMessageJSONBody
     ): Promise<object> {
         const url: string = `https://discord.com/api/channels/${this.channelID}/messages`;
-        const response = await axios.post(url, data, this.config);
-        return response.data;
+        try {
+            const response = await axios.post(url, data, this.config);
+            this.messageID = response.data.id;
+            return response.data;
+        } catch (e) {
+            return { error: e };
+        }
     }
     public async updateMessage(
         data: RESTPatchAPIChannelMessageJSONBody
     ): Promise<object> {
         const url: string = `https://discord.com/api/channels/${this.channelID}/messages/${this.messageID}`;
-        const response = await axios.patch(url, data, this.config);
-        return response.data;
+        try {
+            const response = await axios.patch(url, data, this.config);
+
+            return response.data;
+        } catch (e) {
+            return { error: e };
+        }
     }
 }
 
-export { client };
+// sleep a process while sec seconds function
+const sleep = (sec: number): Promise<void> => {
+    return new Promise((resolve) => setTimeout(resolve, sec * 1000));
+};
+
+export { client, sleep };
