@@ -5,7 +5,7 @@ export interface Config {
     versionImageURL?: string;
 }
 import { Client, sleep, loadTomlSettings, shell } from './discordUtils';
-const plan: string = '0 0 0,6,12,18 * * *';
+const plan: string = '0 0,30 * * * *';
 
 const config: Config = loadTomlSettings('settings.toml');
 const client = new Client(plan);

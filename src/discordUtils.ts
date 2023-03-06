@@ -124,7 +124,7 @@ class Client {
         if (this.messageID === '') {
             let data: RESTPostAPIChannelMessageJSONBody = {
                 content:
-                    'Linux Server Manager for Discord v0.1.0\ncron_job priparing...\n Please wait a few minutes...',
+                    'Linux Server Manager for Discord v0.1.0\nCron Job Priparing\n Cron is ready.\n\nPlan is every 30 minutes.\n\nhttps://github.com/BuntinJP/Linux-Server-Manager',
             };
             await this.postMessage(data);
             return 'Cron Job ready.';
