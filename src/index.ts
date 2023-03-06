@@ -6,10 +6,9 @@ export interface Config {
 }
 import { Client, sleep, loadTomlSettings, shell } from './discordUtils';
 const plan: string = '0 0 0,6,12,18 * * *';
-const plan2: string = '* * * * * *';
 
 const config: Config = loadTomlSettings('settings.toml');
-const client = new Client(plan2);
+const client = new Client(plan);
 const main = async () => {
     await client.pripare();
     client.start();
