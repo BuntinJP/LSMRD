@@ -86,6 +86,7 @@ class Client {
             'mysqld.service',
             'buntin-api.service',
             'bbs.service',
+            'buntin-jupyter.service',
         ];
         const fields: APIEmbedField[] = await this.getServerStatus(services);
         let version: string = shell('cat /etc/os-release | grep PRETTY_NAME');
