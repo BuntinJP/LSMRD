@@ -3,13 +3,18 @@ export interface Config {
     channelID: string;
     token: string;
     versionImageURL?: string;
+    services: string[];
+    domain: string[];
 }
-import { Client, sleep, loadTomlSettings, shell } from './discordUtils';
+import path from 'path';
+import { Client } from './discordUtils';
+//configration variables
 const plan: string = '0 0,30 * * * *';
+const configPath: string = path.join(__dirname, '../config.toml');
 
-const config: Config = loadTomlSettings('settings.toml');
-const client = new Client(plan);
+//main process
 const main = async () => {
+    const client = new Client(plan, configPath);
     await client.pripare();
     client.start();
 };

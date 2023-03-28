@@ -1,0 +1,5 @@
+channelID = "xxx"
+token = "xxx"
+versionImageURL = "https://xxx.png"
+services = ['nginx', 'mysqld', 'buntin-api', 'bbs', 'buntin-jupyter']
+domain = ["buntin.xyz", "buntin.tech"]
