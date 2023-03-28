@@ -2,7 +2,7 @@
 import { Config } from './index';
 //modules
 import { CronJob } from 'cron';
-import execSync from 'child_process';
+import { execSync } from 'child_process';
 import axios, { AxiosRequestConfig, AxiosRequestHeaders } from 'axios';
 import {
     RESTPostAPIChannelMessageJSONBody,
@@ -19,6 +19,8 @@ class Client {
     private channelID: string;
     private messageID: string = '';
     private versionImageURL: string | undefined;
+    private services: string[];
+    private domain: string[] = [];
     private headers: AxiosRequestHeaders = {
         Accept: 'application/json',
         'Content-type': 'application/json',
@@ -27,12 +29,15 @@ class Client {
         headers: this.headers,
     };
     static regx: RegExp = /".*"/;
-    constructor(cronPlan: string, settingFilePath: string = 'settings.toml') {
+    //Constructor
+    constructor(cronPlan: string, settingFilePath: string = 'config.toml') {
         this.count = 0;
         const config: Config = loadTomlSettings(settingFilePath);
         this.headers.Authorization = `Bot ${config.token}`;
         this.channelID = config.channelID;
         this.versionImageURL = config.versionImageURL;
+        this.services = config.services;
+        this.domain = config.domain;
         this.cronJob = new CronJob(cronPlan, async () => {
             try {
                 await this.main();
@@ -64,16 +69,15 @@ class Client {
             return { error: e };
         }
     }
-    private async getServerStatus(
+    private async createServerStatusFields(
         services: string[]
     ): Promise<APIEmbedField[]> {
         let fields: APIEmbedField[] = [];
         for (const service of services) {
-            const status: string = shell(`systemctl status ${service}`);
-            const output = status.split('\n').slice(0, 7).join('\n');
+            const status: string = checkServiceStatus(service);
             fields.push({
                 name: service,
-                value: `\`\`\`${output}\`\`\``,
+                value: `\`\`\`${status}\`\`\``,
             });
         }
         return fields;
@@ -81,14 +85,9 @@ class Client {
     private async generateContent(
         text: string = ''
     ): Promise<RESTPostAPIChannelMessageJSONBody> {
-        const services: string[] = [
-            'nginx.service',
-            'mysqld.service',
-            'buntin-api.service',
-            'bbs.service',
-            'buntin-jupyter.service',
-        ];
-        const fields: APIEmbedField[] = await this.getServerStatus(services);
+        const fields: APIEmbedField[] = await this.createServerStatusFields(
+            this.services
+        );
         let version: string = shell('cat /etc/os-release | grep PRETTY_NAME');
         version = version.match(Client.regx)![0].replace(/"/g, '');
         const uptime: string = shell('uptime -p');
@@ -96,10 +95,11 @@ class Client {
             title: 'Linux Server Manager for Discord',
             description: `\`\`\` \n
             ipv4: [${shell('curl inet-ip.info')}]\n
-            ipv6: [${shell('curl -6 https://ifconfig.co')}]
+            ipv6: [${shell('curl -6 https://ifconfig.co')}]\n
+            domain: [${this.domain.join(', ')}]\n
             \`\`\`
             \n
-            https://cockpit.buntin.tech
+            ${'https://cockpit.' + this.domain[0]}
             \n\n\`count: ${this.count}\`
             `,
             author: {
@@ -153,19 +153,65 @@ class Client {
     }
 }
 
+// 引数のコマンドを実行し結果を文字列で返す。
 const shell = (command: string): string => {
-    return execSync.execSync(command).toString().trim();
+    return execSync(command).toString().trim();
 };
 
-// sleep a process while sec seconds function
+// 引数の秒数だけ同期処理を止める。
 const sleep = (sec: number): Promise<void> => {
     return new Promise((resolve) => setTimeout(resolve, sec * 1000));
 };
 
+// tomlファイルを読み込み、Config型に変換して返す。(Config型はindex.tsに定義)
 const loadTomlSettings = (path: string) => {
     return JSON.parse(
         JSON.stringify(toml.parse(fs.readFileSync(path).toString()))
     ) as Config;
+};
+
+//systemctl status <service>でサービスの状態を確認する。
+const checkServiceStatus = (service: string): string => {
+    let isactive = true;
+    try {
+        shell(`systemctl is-active ${service}`);
+    } catch (e) {
+        isactive = false;
+    }
+    if (!isactive) {
+        return 'inactive';
+    }
+    const outputs = shell(`systemctl status ${service}`).trim();
+    //        .replace(/^\n/gm, '');
+    const outputArray = outputs.split('\n');
+    const title = outputArray[0];
+    const loaded = outputArray[1];
+    const active = outputArray[2];
+    let mainPID = '';
+    let tasks = '';
+    let memory = '';
+    let cpu = '';
+    let cGroupString = '';
+    if (isactive) {
+        //MainPID
+        mainPID = outputArray.find((line) => line.includes('Main PID')) + '\n';
+        //Tasks
+        tasks = outputArray.find((line) => line.includes('Tasks')) + '\n';
+        //Memory
+        memory = outputArray.find((line) => line.includes('Memory')) + '\n';
+        //CPU
+        cpu = outputArray.find((line) => line.includes('CPU')) + '\n';
+        //CGroup
+        const cGroupIndexStart = outputArray.findIndex((line) =>
+            line.includes('CGroup')
+        );
+        const cGroupIndexEnd = outputArray.findIndex((line) =>
+            line.includes('└─')
+        );
+        const cGroup = outputArray.slice(cGroupIndexStart, cGroupIndexEnd + 1);
+        cGroupString = cGroup.join('\n');
+    }
+    return `${title}\n${loaded}\n${active}\n${mainPID}${tasks}${memory}${cpu}${cGroupString}`;
 };
 
 export { Client, sleep, loadTomlSettings, shell };
