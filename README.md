@@ -5,7 +5,7 @@ node bot with node-cron that notice server grobal ip by discord or any webhooks
 
 ## How to use
 
-1. install node.js and npm
+1. clone this repogitory on your server
 
 1. run `npm install`
 
@@ -26,7 +26,8 @@ domain = ["user.xyz", "user.tech"] # server domains (optional. it will be used f
 6. run in repo directory `tsc`
 
 1. (optional) setup systemd service
-```sh:lsmrd.service
+`lvim /etc/systemd/system/lsmrd.service`
+```sh
 [Unit]
 Description=LinuxServerManager for Discord.repo="https://github.com/BuntinJP/LSMRD"
 After=syslog.target network.target
