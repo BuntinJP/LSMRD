@@ -90,12 +90,12 @@ class Client {
         );
         let version: string = shell('cat /etc/os-release | grep PRETTY_NAME');
         version = version.match(Client.regx)![0].replace(/"/g, '');
-        const uptime: string = shell('uptime -p');
+        const uptime: string = shell('uptime');
         let embed: APIEmbed = {
-            title: 'Linux Server Manager for Discord',
+            title: 'Linux Server Manager foR Discord (LSMRD)',
             description: `\`\`\` \n
             ipv4: [${shell('curl inet-ip.info')}]\n
-            ipv6: [${shell('curl -6 https://ifconfig.co')}]\n
+            ipv6: [${shell('curl ifconfig.co')}]\n
             domain: [${this.domain.join(', ')}]\n
             \`\`\`
             \n
@@ -151,6 +151,16 @@ class Client {
             return 'Already stopped';
         }
     }
+    //debug
+    public async debug(): Promise<void> {
+        console.log("debug-mode\ngenerate content\n");
+        console.log(await this.generateContent());
+    }
+    public async test(): Promise<void> {
+        let data = await this.generateContent();
+        console.log("test-mode\ngenerate content\n" + JSON.stringify(data, null, 4));
+        await this.updateMessage(data);
+    };
 }
 
 // 引数のコマンドを実行し結果を文字列で返す。
@@ -211,7 +221,7 @@ const checkServiceStatus = (service: string): string => {
         const cGroup = outputArray.slice(cGroupIndexStart, cGroupIndexEnd + 1);
         cGroupString = cGroup.join('\n');
     }
-    return `${title}\n${loaded}\n${active}\n${mainPID}${tasks}${memory}${cpu}${cGroupString}`;
+    return `${title}\n${loaded}\n${active}\n${mainPID}${tasks}\n${memory}\n${cpu}\n${cGroupString}`;
 };
 
 export { Client, sleep, loadTomlSettings, shell };

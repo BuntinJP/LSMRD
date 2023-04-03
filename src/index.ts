@@ -18,4 +18,9 @@ const main = async () => {
     await client.pripare();
     client.start();
 };
+const testRun = async () => {
+    const client = new Client(plan, configPath);
+    console.log(await client.pripare());
+    await client.test();
+};
 main();
