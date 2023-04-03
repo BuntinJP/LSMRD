@@ -60,13 +60,17 @@ class Client {
     }
     private async updateMessage(
         data: RESTPatchAPIChannelMessageJSONBody
-    ): Promise<object> {
+    ): Promise<void> {
         const url: string = `https://discord.com/api/channels/${this.channelID}/messages/${this.messageID}`;
+        console.log("update\n" + url);
         try {
-            const response = await axios.patch(url, data, this.config);
-            return response.data;
+            const response = await axios.patch(url, data, this.config).catch((e) => {
+                console.log('error in updateMessage');
+                console.log(e.toJSON());
+            })
+            return;
         } catch (e) {
-            return { error: e };
+            return;
         }
     }
     private async createServerStatusFields(
@@ -121,7 +125,7 @@ class Client {
         await this.updateMessage(data);
     }
     //prepare the class properties
-    public async pripare(): Promise<string> {
+    public async prepare(): Promise<string> {
         if (this.messageID === '') {
             let data: RESTPostAPIChannelMessageJSONBody = {
                 content:
@@ -158,7 +162,7 @@ class Client {
     }
     public async test(): Promise<void> {
         let data = await this.generateContent();
-        console.log("test-mode\ngenerate content\n" + JSON.stringify(data, null, 4));
+
         await this.updateMessage(data);
     };
 }
@@ -201,27 +205,14 @@ const checkServiceStatus = (service: string): string => {
     let tasks = '';
     let memory = '';
     let cpu = '';
-    let cGroupString = '';
-    if (isactive) {
-        //MainPID
-        mainPID = outputArray.find((line) => line.includes('Main PID')) + '\n';
-        //Tasks
-        tasks = outputArray.find((line) => line.includes('Tasks')) + '\n';
-        //Memory
-        memory = outputArray.find((line) => line.includes('Memory')) + '\n';
-        //CPU
-        cpu = outputArray.find((line) => line.includes('CPU')) + '\n';
-        //CGroup
-        const cGroupIndexStart = outputArray.findIndex((line) =>
-            line.includes('CGroup')
-        );
-        const cGroupIndexEnd = outputArray.findIndex((line) =>
-            line.includes('└─')
-        );
-        const cGroup = outputArray.slice(cGroupIndexStart, cGroupIndexEnd + 1);
-        cGroupString = cGroup.join('\n');
-    }
-    return `${title}\n${loaded}\n${active}\n${mainPID}${tasks}\n${memory}\n${cpu}\n${cGroupString}`;
+    //MainPID
+    mainPID = outputArray.find((line) => line.includes('Main PID')) + '\n';
+    //Tasks
+    tasks = outputArray.find((line) => line.includes('Tasks')) + '\n';
+    //CPU
+    cpu = outputArray.find((line) => line.includes('CPU')) + '\n';
+    const result = `${title}\n${loaded}\n${active}\n${mainPID}${tasks}${cpu}`;
+    return result;
 };
 
-export { Client, sleep, loadTomlSettings, shell };
+export { Client };

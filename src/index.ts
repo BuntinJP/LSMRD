@@ -15,12 +15,12 @@ const configPath: string = path.join(__dirname, '../config.toml');
 //main process
 const main = async () => {
     const client = new Client(plan, configPath);
-    await client.pripare();
+    await client.prepare();
     client.start();
 };
 const testRun = async () => {
     const client = new Client(plan, configPath);
-    console.log(await client.pripare());
+    await client.prepare();
     await client.test();
 };
 main();
