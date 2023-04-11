@@ -203,7 +203,6 @@ const checkServiceStatus = (service: string): string => {
     const active = outputArray[2];
     let mainPID = '';
     let tasks = '';
-    let memory = '';
     let cpu = '';
     //MainPID
     mainPID = outputArray.find((line) => line.includes('Main PID')) + '\n';

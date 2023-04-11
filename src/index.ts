@@ -7,7 +7,7 @@ export interface Config {
     domain: string[];
 }
 import path from 'path';
-import { Client } from './discordUtils';
+import { Client } from './lsmrdClient';
 //configration variables
 const plan: string = '0 0,30 * * * *';
 const configPath: string = path.join(__dirname, '../config.toml');
